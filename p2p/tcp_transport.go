@@ -85,4 +85,5 @@ func (t *TCPTransport) handleConnection(conn net.Conn) {
 
 	// Send a message via channel to this connection such that it adds us into it's peer network
 	log.Printf("New connection: %v", conn.RemoteAddr())
+	log.Printf("New connection: %+v", p)
 }
