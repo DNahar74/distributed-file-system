@@ -10,3 +10,6 @@ type Transport interface {
 	ListenAndAccept() error
 	Dial(string) error
 }
+
+// HandshakeFunc is the type every handshake func needs to follow
+type HandshakeFunc func (Peer) error

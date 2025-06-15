@@ -9,8 +9,9 @@ import (
 
 // TCPTransport represents transport over TCP
 type TCPTransport struct {
-	listenAddress string       // Address on which this node listens (Eg: port 3000 is exposed)
-	listener      net.Listener // Listener for incoming connections
+	listenAddress string        // Address on which this node listens (Eg: port 3000 is exposed)
+	listener      net.Listener  // Listener for incoming connections
+	handshake     HandshakeFunc // Handshake for incoming connections
 
 	mu    sync.RWMutex      // RWMutex to access peers safely during concurrent access
 	peers map[net.Addr]Peer // Peers to track connected peer nodes identified by their network address
@@ -21,6 +22,7 @@ func NewTCPTransport(listenAddr string) Transport {
 	return &TCPTransport{
 		listenAddress: listenAddr,
 		peers:         make(map[net.Addr]Peer),
+		handshake:     TCPHandshake,
 	}
 }
 
@@ -79,6 +81,12 @@ func (t *TCPTransport) startAcceptingConnections() {
 
 func (t *TCPTransport) handleConnection(conn net.Conn) {
 	p := NewTCPPeer(conn, false)
+	err := t.handshake(p)
+	if err != nil {
+		log.Printf("Error completing handshake with connection %+v", p)
+		return
+	}
+
 	t.mu.Lock()
 	t.peers[conn.RemoteAddr()] = p
 	t.mu.Unlock()
