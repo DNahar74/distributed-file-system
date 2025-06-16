@@ -1,13 +1,16 @@
 package p2p
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestNewTCPTransportAddress(t *testing.T) {
 	listenAddr := ":3000"
-	tr := NewTCPTransport(listenAddr).(*TCPTransport)
+	tcpOpts := NewTCPTransportOptions(listenAddr)
+	tr := NewTCPTransport(*tcpOpts).(*TCPTransport)
 
-	if tr.listenAddress != listenAddr {
-		t.Fatalf("The listen addresses do not match transport address. \n ListenAddress = %s \n TransportAddress = %s", listenAddr, tr.listenAddress)
+	if tr.options.listenAddress != listenAddr {
+		t.Fatalf("The listen addresses do not match transport address. \n ListenAddress = %s \n TransportAddress = %s", listenAddr, tr.options.listenAddress)
 	}
 
 	err := tr.ListenAndAccept()
@@ -18,10 +21,11 @@ func TestNewTCPTransportAddress(t *testing.T) {
 
 func TestNewTCPTransportIncorrectAddr(t *testing.T) {
 	listenAddr := "3000"
-	tr := NewTCPTransport(listenAddr).(*TCPTransport)
+	tcpOpts := NewTCPTransportOptions(listenAddr)
+	tr := NewTCPTransport(*tcpOpts).(*TCPTransport)
 
-	if tr.listenAddress != listenAddr {
-		t.Fatalf("The listen addresses do not match transport address. \n ListenAddress = %s \n TransportAddress = %s", listenAddr, tr.listenAddress)
+	if tr.options.listenAddress != listenAddr {
+		t.Fatalf("The listen addresses do not match transport address. \n ListenAddress = %s \n TransportAddress = %s", listenAddr, tr.options.listenAddress)
 	}
 
 	err := tr.ListenAndAccept()
