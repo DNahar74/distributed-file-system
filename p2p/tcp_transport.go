@@ -22,8 +22,8 @@ type TCPTransportOptions struct {
 func NewTCPTransportOptions(listenAddr string) *TCPTransportOptions {
 	return &TCPTransportOptions{
 		listenAddress: listenAddr,
-		handshake: TCPHandshake,
-		decoder: encoding.NOPDecoder{},
+		handshake:     TCPHandshake,
+		decoder:       encoding.NOPDecoder{},
 	}
 }
 
@@ -39,8 +39,8 @@ type TCPTransport struct {
 // NewTCPTransport returns a TCPTransport instance for the given address
 func NewTCPTransport(options TCPTransportOptions) Transport {
 	return &TCPTransport{
-		options:   options,
-		peers:     make(map[net.Addr]Peer),
+		options: options,
+		peers:   make(map[net.Addr]Peer),
 	}
 }
 
