@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/DNahar74/distributed-file-system/encoding"
+	"github.com/DNahar74/distributed-file-system/message"
 )
 
 // TCPTransportOptions gives the transport options
@@ -17,11 +18,12 @@ type TCPTransportOptions struct {
 }
 
 // NewTCPTransportOptions return transport options for the TCP server
+// To be configured into main for options of decoder
 func NewTCPTransportOptions(listenAddr string) *TCPTransportOptions {
 	return &TCPTransportOptions{
 		listenAddress: listenAddr,
 		handshake: TCPHandshake,
-		decoder: encoding.GOBDecoder{},
+		decoder: encoding.NOPDecoder{},
 	}
 }
 
@@ -109,13 +111,22 @@ func (t *TCPTransport) handleConnection(conn net.Conn) {
 	t.mu.Unlock()
 
 	log.Printf("New connection: %+v", p)
+	badRequests := 0
 
-	msg := make([]byte, 4086)
+	msg := message.Message{}
 	// Read loop
 	for {
-		err = t.options.decoder.Decode(conn, msg)
+		err = t.options.decoder.Decode(conn, &msg)
 		if err != nil {
 			log.Println("Error decoding the command:", err)
+			badRequests++
+			if badRequests >= 5 {
+				conn.Close()
+				return
+			}
+			continue
 		}
+		badRequests = 0
+		log.Printf("Message is: %+v", msg)
 	}
 }
