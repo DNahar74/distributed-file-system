@@ -17,3 +17,8 @@ func NewTCPPeer(conn net.Conn, outbound bool) Peer {
 		outbound: outbound,
 	}
 }
+
+// Close closes the connection
+func (t *TCPPeer) Close() error {
+	return t.conn.Close()
+}

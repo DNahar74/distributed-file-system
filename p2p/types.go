@@ -2,6 +2,7 @@ package p2p
 
 // Peer is any remote node
 type Peer interface {
+	Close() error
 }
 
 // Transport is anything that handles communication between the nodes in a server.
