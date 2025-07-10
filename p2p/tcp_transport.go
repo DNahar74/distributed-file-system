@@ -113,7 +113,7 @@ func (t *TCPTransport) handleConnection(conn net.Conn) {
 	log.Printf("New connection: %+v", p)
 	badRequests := 0
 
-	msg := message.Message{}
+	msg := message.Message{Sender: conn.LocalAddr()}
 	// Read loop
 	for {
 		err = t.options.decoder.Decode(conn, &msg)
