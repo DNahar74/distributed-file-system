@@ -1,5 +1,7 @@
 package p2p
 
+import "github.com/DNahar74/distributed-file-system/message"
+
 // Peer is any remote node
 type Peer interface {
 	Close() error
@@ -10,6 +12,7 @@ type Peer interface {
 type Transport interface {
 	ListenAndAccept() error
 	Dial(string) error
+	Consume() <-chan message.Message
 }
 
 // HandshakeFunc is the type every handshake func needs to follow

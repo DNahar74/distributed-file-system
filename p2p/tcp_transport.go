@@ -30,7 +30,8 @@ func NewTCPTransportOptions(listenAddr string) *TCPTransportOptions {
 // TCPTransport represents transport over TCP
 type TCPTransport struct {
 	options  TCPTransportOptions
-	listener net.Listener // Listener for incoming connections
+	listener net.Listener         // Listener for incoming connections
+	rpcchan  chan message.Message // Channel to consume messages
 
 	mu    sync.RWMutex      // RWMutex to access peers safely during concurrent access
 	peers map[net.Addr]Peer // Peers to track connected peer nodes identified by their network address
@@ -41,6 +42,7 @@ func NewTCPTransport(options TCPTransportOptions) Transport {
 	return &TCPTransport{
 		options: options,
 		peers:   make(map[net.Addr]Peer),
+		rpcchan: make(chan message.Message),
 	}
 }
 
@@ -68,6 +70,8 @@ func (t *TCPTransport) Dial(addr string) error {
 	t.peers[conn.RemoteAddr()] = p
 	t.mu.Unlock()
 
+	log.Printf("New connection: %+v", p)
+
 	return nil
 }
 
@@ -84,6 +88,11 @@ func (t *TCPTransport) Peers() []Peer {
 	}
 
 	return pArr
+}
+
+// Consume returns a channel that can be used to read messages (one-way channel)
+func (t *TCPTransport) Consume() <-chan message.Message {
+	return t.rpcchan
 }
 
 func (t *TCPTransport) startAcceptingConnections() {
@@ -113,7 +122,7 @@ func (t *TCPTransport) handleConnection(conn net.Conn) {
 	log.Printf("New connection: %+v", p)
 	badRequests := 0
 
-	msg := message.Message{Sender: conn.LocalAddr()}
+	msg := message.Message{Sender: conn.RemoteAddr()}
 	// Read loop
 	for {
 		err = t.options.decoder.Decode(conn, &msg)
@@ -121,12 +130,23 @@ func (t *TCPTransport) handleConnection(conn net.Conn) {
 			log.Println("Error decoding the command:", err)
 			badRequests++
 			if badRequests >= 5 {
-				conn.Close()
+				p.Close()
+
+				t.mu.Lock()
+				for k, v := range t.peers {
+					if v == p {
+						delete(t.peers, k)
+					}
+				}
+				t.mu.Unlock()
+
+				t.rpcchan <- msg
 				return
 			}
 			continue
 		}
 		badRequests = 0
-		log.Printf("Message is: %+v", msg)
+		log.Printf("Sender: %+v", msg.Sender)
+		log.Printf("Payload: %+v", string(msg.Payload))
 	}
 }
