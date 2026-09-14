@@ -33,13 +33,13 @@ func (dec NOPDecoder) Decode(r io.Reader, msg *message.Message) error {
 }
 
 type Encoder interface {
-	Encode(io.Reader, any) error
+	Encode(io.Writer, any) error
 }
 
 type GOBEncoder struct{}
 
-func (enc GOBEncoder) Encode(r io.Writer, v any) error {
+func (enc GOBEncoder) Encode(w io.Writer, v any) error {
 	fmt.Println("Hello from Encoder")
-	err := gob.NewEncoder(r).Encode(v)
+	err := gob.NewEncoder(w).Encode(v)
 	return err
 }
