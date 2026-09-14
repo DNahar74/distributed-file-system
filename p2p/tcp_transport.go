@@ -140,7 +140,6 @@ func (t *TCPTransport) handleConnection(conn net.Conn) {
 				}
 				t.mu.Unlock()
 
-				t.rpcchan <- msg
 				return
 			}
 			continue
@@ -148,5 +147,6 @@ func (t *TCPTransport) handleConnection(conn net.Conn) {
 		badRequests = 0
 		log.Printf("Sender: %+v", msg.Sender)
 		log.Printf("Payload: %+v", string(msg.Payload))
+		t.rpcchan <- msg
 	}
 }
