@@ -46,17 +46,19 @@ func LoadFlags() (*Flags, error) {
 	
 	c.Start = startURL
 
-	peers := strings.Split(*connectPtr, ",")
-	for i, v := range peers {
-		peerURL, err := getValidURL(v)
-		if err != nil {
-			return nil, err
+	if inputFlags["connect"] {
+		peers := strings.Split(*connectPtr, ",")
+		for i, v := range peers {
+			peerURL, err := getValidURL(v)
+			if err != nil {
+				return nil, err
+			}
+	
+			peers[i] = peerURL
 		}
-
-		peers[i] = peerURL
+	
+		c.Connect = peers
 	}
-
-	c.Connect = peers
 
 	return c, nil
 }
